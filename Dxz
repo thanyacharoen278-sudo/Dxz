@@ -1,0 +1,252 @@
+-- DEKUz Menu (LocalScript)
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- สร้าง ScreenGui
+local gui = Instance.new("ScreenGui")
+gui.Name = "DEKUzMenu"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = playerGui
+
+-- ปุ่มเปิด/ปิด
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleButton"
+toggleBtn.Size = UDim2.new(0, 130, 0, 38)
+toggleBtn.Position = UDim2.new(1, -150, 0, 18)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+toggleBtn.Text = "💙 DEKUz"
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 16
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.BorderSizePixel = 0
+toggleBtn.AutoButtonColor = false
+toggleBtn.Parent = gui
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 10)
+
+-- Main Frame (เล็กลง)
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.new(0, 480, 0, 290)
+main.Position = UDim2.new(0.5, -240, 0.5, -145)
+main.BackgroundColor3 = Color3.fromRGB(12, 18, 38)
+main.BorderSizePixel = 0
+main.Visible = false
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 14)
+
+-- ขอบเงาบาง ๆ
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(0, 160, 255)
+stroke.Thickness = 1.5
+stroke.Transparency = 0.4
+stroke.Parent = main
+
+-- TopBar
+local top = Instance.new("Frame")
+top.Size = UDim2.new(1, 0, 0, 40)
+top.BackgroundColor3 = Color3.fromRGB(0, 120, 220)
+top.BorderSizePixel = 0
+top.Parent = main
+Instance.new("UICorner", top).CornerRadius = UDim.new(0, 14)
+
+-- ตัดมุมล่างของ TopBar ให้ตรง
+local topFix = Instance.new("Frame")
+topFix.Size = UDim2.new(1, 0, 0, 14)
+topFix.Position = UDim2.new(0, 0, 1, -14)
+topFix.BackgroundColor3 = Color3.fromRGB(0, 120, 220)
+topFix.BorderSizePixel = 0
+topFix.Parent = top
+
+-- Title + สีรุ้ง
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 1, 0)
+title.BackgroundTransparency = 1
+title.Text = "💙 DEKUz เมนู"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Parent = top
+
+-- สีรุ้งเคลื่อนไหวที่ Title
+local rainbowTime = 0
+RunService.RenderStepped:Connect(function(dt)
+	rainbowTime = rainbowTime + dt * 0.6
+	local hue = (rainbowTime % 1)
+	title.TextColor3 = Color3.fromHSV(hue, 0.85, 1)
+end)
+
+-- Sidebar (เลื่อนได้)
+local side = Instance.new("ScrollingFrame")
+side.Size = UDim2.new(0, 145, 1, -40)
+side.Position = UDim2.new(0, 0, 0, 40)
+side.BackgroundColor3 = Color3.fromRGB(16, 26, 52)
+side.BorderSizePixel = 0
+side.ScrollBarThickness = 4
+side.ScrollBarImageColor3 = Color3.fromRGB(0, 160, 255)
+side.CanvasSize = UDim2.new(0, 0, 0, 0)
+side.AutomaticCanvasSize = Enum.AutomaticSize.Y
+side.Parent = main
+
+local sideList = Instance.new("UIListLayout")
+sideList.Padding = UDim.new(0, 7)
+sideList.SortOrder = Enum.SortOrder.LayoutOrder
+sideList.Parent = side
+
+local sidePad = Instance.new("UIPadding")
+sidePad.PaddingTop = UDim.new(0, 10)
+sidePad.PaddingLeft = UDim.new(0, 8)
+sidePad.PaddingRight = UDim.new(0, 8)
+sidePad.PaddingBottom = UDim.new(0, 10)
+sidePad.Parent = side
+
+-- Content (เลื่อนได้)
+local content = Instance.new("ScrollingFrame")
+content.Size = UDim2.new(1, -145, 1, -40)
+content.Position = UDim2.new(0, 145, 0, 40)
+content.BackgroundColor3 = Color3.fromRGB(10, 16, 34)
+content.BorderSizePixel = 0
+content.ScrollBarThickness = 5
+content.ScrollBarImageColor3 = Color3.fromRGB(0, 160, 255)
+content.CanvasSize = UDim2.new(0, 0, 0, 0)
+content.AutomaticCanvasSize = Enum.AutomaticSize.Y
+content.Parent = main
+
+local pages = {}
+
+local function createPage(name)
+	local page = Instance.new("Frame")
+	page.Name = name
+	page.Size = UDim2.new(1, 0, 0, 0)
+	page.AutomaticSize = Enum.AutomaticSize.Y
+	page.BackgroundTransparency = 1
+	page.Visible = false
+	page.Parent = content
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -30, 0, 36)
+	label.Position = UDim2.new(0, 18, 0, 14)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBold
+	label.TextSize = 22
+	label.TextColor3 = Color3.fromRGB(180, 220, 255)
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Text = name
+	label.Parent = page
+
+	pages[name] = page
+	return page
+end
+
+-- สร้างหน้าภาษาไทย
+createPage("หน้าหลัก")
+createPage("ทักษะ")
+createPage("กระเป๋า")
+createPage("ดันเจี้ยน")
+createPage("ตั้งค่า")
+createPage("เครดิต")
+
+pages["หน้าหลัก"].Visible = true
+
+local function openPage(name)
+	for _, p in pairs(pages) do
+		p.Visible = false
+	end
+	if pages[name] then
+		pages[name].Visible = true
+	end
+end
+
+local function addButton(text, pageName)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(1, 0, 0, 36)
+	b.BackgroundColor3 = Color3.fromRGB(25, 70, 160)
+	b.TextColor3 = Color3.new(1, 1, 1)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 15
+	b.Text = text
+	b.AutoButtonColor = false
+	b.Parent = side
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+
+	b.MouseEnter:Connect(function()
+		TweenService:Create(b, TweenInfo.new(0.18), {
+			BackgroundColor3 = Color3.fromRGB(0, 160, 255)
+		}):Play()
+	end)
+
+	b.MouseLeave:Connect(function()
+		TweenService:Create(b, TweenInfo.new(0.18), {
+			BackgroundColor3 = Color3.fromRGB(25, 70, 160)
+		}):Play()
+	end)
+
+	b.MouseButton1Click:Connect(function()
+		openPage(pageName)
+	end)
+end
+
+-- ปุ่มเมนูภาษาไทย
+addButton("🏠  หน้าหลัก", "หน้าหลัก")
+addButton("⚔  ทักษะ", "ทักษะ")
+addButton("🎒  กระเป๋า", "กระเป๋า")
+addButton("🗺  ดันเจี้ยน", "ดันเจี้ยน")
+addButton("⚙  ตั้งค่า", "ตั้งค่า")
+addButton("⭐  เครดิต", "เครดิต")
+
+-- เนื้อหาเครดิต
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Size = UDim2.new(1, -30, 0, 70)
+creditLabel.Position = UDim2.new(0, 18, 0, 60)
+creditLabel.BackgroundTransparency = 1
+creditLabel.Font = Enum.Font.Gotham
+creditLabel.TextSize = 18
+creditLabel.TextColor3 = Color3.fromRGB(200, 220, 255)
+creditLabel.TextXAlignment = Enum.TextXAlignment.Left
+creditLabel.Text = "ผู้พัฒนา : PF👑\nขอบคุณที่ใช้ DEKUz เมนู"
+creditLabel.Parent = pages["เครดิต"]
+
+-- ระบบเปิด/ปิด
+local function toggleMenu()
+	main.Visible = not main.Visible
+	if main.Visible then
+		toggleBtn.Text = "❌ ปิด"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 80)
+	else
+		toggleBtn.Text = "💙 DEKUz"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+	end
+end
+
+toggleBtn.MouseButton1Click:Connect(toggleMenu)
+
+-- กด K เปิด/ปิด
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.K then
+		toggleMenu()
+	end
+end)
+
+-- Hover ปุ่มเปิด/ปิด
+toggleBtn.MouseEnter:Connect(function()
+	if not main.Visible then
+		TweenService:Create(toggleBtn, TweenInfo.new(0.15), {
+			BackgroundColor3 = Color3.fromRGB(0, 180, 255)
+		}):Play()
+	end
+end)
+
+toggleBtn.MouseLeave:Connect(function()
+	if not main.Visible then
+		TweenService:Create(toggleBtn, TweenInfo.new(0.15), {
+			BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+		}):Play()
+	end
+end)
